@@ -1,0 +1,64 @@
+import org.w3c.dom.*;
+import org.xml.sax.InputSource;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import java.io.StringReader;
+import java.util.HashMap;
+import java.util.Map;
+
+public class IntegerArithmeticInterpreter {
+    public static void main(String[] args) {
+        String programXML = "<program>\n" +
+                "  <var name=\"a\" value=\"5\"/>\n" +
+                "  <var name=\"b\" value=\"6\"/>\n" +
+                "  <var name=\"c\"/>\n" +
+                "  <add n1=\"a\" n2=\"b\" to=\"c\"/>\n" +
+                "  <print n=\"c\"/>\n" +
+                "</program>";
+
+        executeProgram(programXML);
+    }
+
+    public static void executeProgram(String programXML) {
+        try {
+            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder builder = factory.newDocumentBuilder();
+            InputSource is = new InputSource(new StringReader(programXML));
+            Document doc = builder.parse(is);
+
+            Map<String, Integer> variables = new HashMap<>();
+
+            NodeList varNodes = doc.getElementsByTagName("var");
+            for (int i = 0; i < varNodes.getLength(); i++) {
+                Element varElement = (Element) varNodes.item(i);
+                String varName = varElement.getAttribute("name");
+                String varValue = varElement.getAttribute("value");
+                if (!varValue.isEmpty()) {
+                    int value = Integer.parseInt(varValue);
+                    variables.put(varName, value);
+                }
+            }
+
+            NodeList addNodes = doc.getElementsByTagName("add");
+            for (int i = 0; i < addNodes.getLength(); i++) {
+                Element addElement = (Element) addNodes.item(i);
+                String n1 = addElement.getAttribute("n1");
+                String n2 = addElement.getAttribute("n2");
+                String to = addElement.getAttribute("to");
+                int result = variables.get(n1) + variables.get(n2);
+                variables.put(to, result);
+            }
+
+            NodeList printNodes = doc.getElementsByTagName("print");
+            for (int i = 0; i < printNodes.getLength(); i++) {
+                Element printElement = (Element) printNodes.item(i);
+                String n = printElement.getAttribute("n");
+                int value = variables.get(n);
+                System.out.println(value);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
